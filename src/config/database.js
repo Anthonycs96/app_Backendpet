@@ -1,22 +1,47 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 
-dotenv.config(); // Cargar variables de entorno
+dotenv.config();
 
-const useSSL = process.env.USE_SSL === "true"; // Mayúsculas en la variable
+const useSSL = process.env.USE_SSL === "true";
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: "mysql",
-    dialectOptions: useSSL
-        ? {
-            ssl: {
-                require: true,
-                rejectUnauthorized: false,
-            },
-        }
-        : {},
-    logging: false,
-});
+// Extraer las credenciales de DATABASE_URL
+const parseDBUrl = (url) => {
+    const regex = /mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/;
+    const matches = url.match(regex);
+    if (!matches) {
+        throw new Error('Invalid DATABASE_URL format');
+    }
+    return {
+        user: matches[1],
+        password: matches[2],
+        host: matches[3],
+        port: matches[4],
+        database: matches[5]
+    };
+};
+
+const dbConfig = parseDBUrl(process.env.DATABASE_URL);
+
+const sequelize = new Sequelize(
+    dbConfig.database,
+    dbConfig.user,
+    dbConfig.password,
+    {
+        host: dbConfig.host,
+        port: dbConfig.port,
+        dialect: "mysql",
+        dialectOptions: useSSL
+            ? {
+                ssl: {
+                    require: true,
+                    rejectUnauthorized: false,
+                },
+            }
+            : {},
+        logging: false,
+    }
+);
 
 (async () => {
     try {
@@ -27,4 +52,5 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
     }
 })();
 
+export { sequelize };
 export default sequelize;

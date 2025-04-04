@@ -1,75 +1,255 @@
 import sequelize from "../config/database.js";
 
-// Importar modelos
-import Usuario from "./Usuario.js";
-import Veterinaria from "./Veterinaria.js";
-import Servicio from "./Servicio.js";
-import Paciente from "./Paciente.js";
-import HistorialMedico from "./HistorialMedico.js";
-import Cita from "./Cita.js";
-import HorarioAtencion from "./HorarioAtencion.js";
-import UsuarioVeterinaria from "./UsuarioVeterinaria.js";
+// Importar modelos base
+import Usuario from "../modules/usuario/usuario.model.js";
+// Modelo para gestionar usuarios del sistema (clientes, veterinarios, administradores)
+import Veterinaria from "../modules/veterinaria/veterinaria.model.js";
+// Modelo para almacenar información de las clínicas veterinarias
+import Servicio from "../modules/servicio/servicio.model.js";
+// Modelo para los servicios que ofrece cada veterinaria
+import PrecioServicio from "../modules/servicio/PrecioServicio.js";
+// Modelo para gestionar los precios históricos de los servicios
+import Paciente from "../modules/paciente/paciente.model.js";
+// Modelo para registrar las mascotas/pacientes y sus datos
+import HistorialMedico from "../modules/historial/historial.model.js";
+// Modelo para el historial médico de cada paciente
+import Cita from "../modules/cita/cita.model.js";
+// Modelo para gestionar las citas médicas
+import HorarioAtencion from "../modules/horario/horario.model.js";
+// Modelo para los horarios de atención de cada veterinaria
+import UsuarioVeterinaria from "../modules/usuarioVeterinaria/usuarioVeterinaria.model.js";
+// Modelo para la relación entre usuarios y veterinarias (personal médico)
+import Factura from "../modules/facturacion/factura.model.js";
+// Modelo para las facturas de servicios prestados
+import DetalleFactura from "../modules/facturacion/detalle_factura.model.js";
+// Modelo para los items/servicios incluidos en cada factura
+import Pago from "../modules/facturacion/pago.model.js";
+// Modelo para registrar los pagos realizados a las facturas
+import Promocion from "../modules/promociones/promocion.model.js";
+// Modelo para las promociones y descuentos
+import ServicioPromocion from "../modules/promociones/servicio_promocion.model.js";
+// Modelo para relacionar servicios con promociones activas
+import PuntosCliente from "../modules/fidelizacion/puntos_cliente.model.js";
+// Modelo para gestionar los puntos de fidelización
+import HistorialPuntos from "../modules/fidelizacion/historial_puntos.model.js";
+// Modelo para el historial de puntos de fidelización
+import Auditoria from "../modules/auditoria/auditoria.model.js";
+// Modelo para el registro de auditoría
+
 
 // ✅ Definir relaciones aquí
+// Relaciones Usuario
+Usuario.hasMany(UsuarioVeterinaria, { foreignKey: "usuario_id", as: "veterinariasAsociadas" });
+UsuarioVeterinaria.belongsTo(Usuario, { foreignKey: "usuario_id", as: "usuarioAsociado" });
+
+// Relaciones Veterinaria
+Veterinaria.hasMany(UsuarioVeterinaria, { foreignKey: "veterinaria_id", as: "usuariosAsociados" });
+UsuarioVeterinaria.belongsTo(Veterinaria, { foreignKey: "veterinaria_id", as: "veterinariaAsociada" });
+
+// Relaciones Servicio y PrecioServicio
+Servicio.hasMany(PrecioServicio, {
+    foreignKey: "servicio_id",
+    as: "preciosHistoricos"
+});
+
+PrecioServicio.belongsTo(Servicio, {
+    foreignKey: "servicio_id",
+    as: "servicioRelacionado"
+});
+
+// Relaciones Paciente
+Usuario.hasMany(Paciente, {
+    foreignKey: "propietario_id",
+    as: "mascotasPropietario"
+});
+
+Usuario.hasMany(Paciente, {
+    foreignKey: "veterinario_id",
+    as: "pacientesAtendidosVeterinario"
+});
+
+Paciente.belongsTo(Usuario, {
+    foreignKey: "propietario_id",
+    as: "propietarioPaciente"
+});
+
+Paciente.belongsTo(Usuario, {
+    foreignKey: "veterinario_id",
+    as: "veterinarioAsignadoPaciente"
+});
+
+// Relaciones HistorialMedico
+Paciente.hasMany(HistorialMedico, {
+    foreignKey: "paciente_id",
+    as: "historialesMedicos"
+});
+
+HistorialMedico.belongsTo(Paciente, {
+    foreignKey: "paciente_id",
+    as: "mascotaHistorial"
+});
+
+// Relaciones Cita
+Cita.belongsTo(Usuario, {
+    foreignKey: "veterinario_id",
+    as: "veterinarioCitaAsignado"
+});
+
+Cita.belongsTo(Usuario, {
+    foreignKey: "propietario_id",
+    as: "clienteCitaAsociado"
+});
+
+Cita.belongsTo(Paciente, {
+    foreignKey: "paciente_id",
+    as: "mascotaCitaAsociada"
+});
+
+Usuario.hasMany(Cita, {
+    foreignKey: "veterinario_id",
+    as: "citasAsignadasVeterinario"
+});
+
+Usuario.hasMany(Cita, {
+    foreignKey: "propietario_id",
+    as: "citasReservadasPropietario"
+});
+
+Paciente.hasMany(Cita, {
+    foreignKey: "paciente_id",
+    as: "historialCitasPaciente"
+});
+
+// Relaciones HorarioAtencion
+Usuario.hasMany(HorarioAtencion, { foreignKey: "usuario_id", as: "horariosAsignados" });
+HorarioAtencion.belongsTo(Usuario, { foreignKey: "usuario_id", as: "usuarioHorario" });
+
 // Relación entre Usuario y Veterinaria
-Usuario.belongsToMany(Veterinaria, { 
-    through: 'UsuarioVeterinaria', 
-    foreignKey: 'usuarioId', 
-    as: 'veterinariasUsuario' 
-});
-Veterinaria.belongsToMany(Usuario, { 
-    through: 'UsuarioVeterinaria', 
-    foreignKey: 'veterinariaId', 
-    as: 'usuariosVeterinaria' 
+Usuario.belongsToMany(Veterinaria, {
+    through: 'UsuarioVeterinaria',
+    foreignKey: 'usuarioId',
+    as: 'veterinariasUsuarioAsociadas'
 });
 
-Usuario.hasMany(Cita, { foreignKey: "veterinario_id", as: "citasVeterinario", onDelete: "CASCADE", onUpdate: "CASCADE" });
-Cita.belongsTo(Usuario, { foreignKey: "veterinario_id", as: "veterinario", onDelete: "CASCADE", onUpdate: "CASCADE" });
+Veterinaria.belongsToMany(Usuario, {
+    through: 'UsuarioVeterinaria',
+    foreignKey: 'veterinariaId',
+    as: 'usuariosVeterinariaAsociados'
+});
 
-Paciente.hasMany(Cita, { foreignKey: "paciente_id", as: "citasPaciente", onDelete: "CASCADE", onUpdate: "CASCADE" });
-Cita.belongsTo(Paciente, { foreignKey: "paciente_id", as: "paciente", onDelete: "CASCADE", onUpdate: "CASCADE" });
+// Relación entre Servicio y DetalleFactura
+Servicio.hasMany(DetalleFactura, {
+    foreignKey: "servicio_id",
+    as: "detallesServicio"
+});
 
-// Relación entre Usuario y Paciente
-Usuario.hasMany(Paciente, { foreignKey: "usuario_id", as: "pacientes", onDelete: "CASCADE", onUpdate: "CASCADE" });
-Paciente.belongsTo(Usuario, { foreignKey: "usuario_id", as: "propietario", onDelete: "CASCADE", onUpdate: "CASCADE" });
+DetalleFactura.belongsTo(Servicio, {
+    foreignKey: "servicio_id",
+    as: "servicioRelacionado"
+});
 
-// Relación entre Veterinaria y Servicio
-Veterinaria.hasMany(Servicio, { foreignKey: "veterinaria_id", as: "servicios", onDelete: "CASCADE", onUpdate: "CASCADE" });
-Servicio.belongsTo(Veterinaria, { foreignKey: "veterinaria_id", as: "veterinaria", onDelete: "CASCADE", onUpdate: "CASCADE" });
+// Relación entre Factura y DetalleFactura
+Factura.hasMany(DetalleFactura, {
+    foreignKey: "factura_id",
+    as: "itemsFactura"
+});
 
-// Relación entre Veterinaria y HorarioAtencion
-Veterinaria.hasMany(HorarioAtencion, { foreignKey: "veterinaria_id", as: "horarios", onDelete: "CASCADE", onUpdate: "CASCADE" });
-HorarioAtencion.belongsTo(Veterinaria, { foreignKey: "veterinaria_id", as: "veterinaria", onDelete: "CASCADE", onUpdate: "CASCADE" });
+DetalleFactura.belongsTo(Factura, {
+    foreignKey: "factura_id",
+    as: "facturaRelacionada"
+});
 
-// Relación entre Veterinaria y Usuario (empleados)
-Veterinaria.hasMany(Usuario, { foreignKey: "veterinaria_id", as: "empleados", onDelete: "CASCADE", onUpdate: "CASCADE" });
-Usuario.belongsTo(Veterinaria, { foreignKey: "veterinaria_id", as: "veterinaria", onDelete: "CASCADE", onUpdate: "CASCADE" });
+// Relación entre Promocion y ServicioPromocion
+Promocion.hasMany(ServicioPromocion, {
+    foreignKey: "promocion_id",
+    as: "serviciosPromocionadosAsociados"
+});
 
-// Relación entre Servicio y Cita
-Servicio.hasMany(Cita, { foreignKey: "servicio_id", as: "citasServicio", onDelete: "CASCADE", onUpdate: "CASCADE" });
-Cita.belongsTo(Servicio, { foreignKey: "servicio_id", as: "servicio", onDelete: "CASCADE", onUpdate: "CASCADE" });
+ServicioPromocion.belongsTo(Promocion, {
+    foreignKey: "promocion_id",
+    as: "promocionAsociada"
+});
 
-// Relación entre Paciente y HistorialMedico
-Paciente.hasMany(HistorialMedico, { foreignKey: "paciente_id", as: "historialMedico", onDelete: "CASCADE", onUpdate: "CASCADE" });
-HistorialMedico.belongsTo(Paciente, { foreignKey: "paciente_id", as: "paciente", onDelete: "CASCADE", onUpdate: "CASCADE" });
+Servicio.hasMany(ServicioPromocion, {
+    foreignKey: "servicio_id",
+    as: "promocionesAsociadas"
+});
 
-// Relación entre Cita y HistorialMedico
-Cita.hasOne(HistorialMedico, { foreignKey: "cita_id", as: "historial" });
-HistorialMedico.belongsTo(Cita, { foreignKey: "cita_id", as: "cita" });
+ServicioPromocion.belongsTo(Servicio, {
+    foreignKey: "servicio_id",
+    as: "servicioPromocionado"
+});
 
-Usuario.hasMany(UsuarioVeterinaria, { foreignKey: "usuarioId", as: 'asignacionesUsuario' });
-UsuarioVeterinaria.belongsTo(Usuario, { foreignKey: "usuarioId", as: 'usuarioAsignado' });
+// Relación entre Usuario y PuntosCliente
+Usuario.hasOne(PuntosCliente, {
+    foreignKey: "usuario_id",
+    as: "puntosAsociados"
+});
 
-Veterinaria.hasMany(UsuarioVeterinaria, { foreignKey: "veterinariaId", as: 'asignacionesVeterinaria' });
-UsuarioVeterinaria.belongsTo(Veterinaria, { foreignKey: "veterinariaId", as: 'veterinariaAsignada' });
+PuntosCliente.belongsTo(Usuario, {
+    foreignKey: "usuario_id",
+    as: "clientePuntos"
+});
+
+// Relación entre PuntosCliente y HistorialPuntos
+PuntosCliente.hasMany(HistorialPuntos, {
+    foreignKey: "puntos_cliente_id",
+    as: "historialPuntosAsociados"
+});
+
+HistorialPuntos.belongsTo(PuntosCliente, {
+    foreignKey: "puntos_cliente_id",
+    as: "puntosClienteAsociado"
+});
+
+// Relación entre Factura y Pago
+Factura.hasMany(Pago, {
+    foreignKey: "factura_id",
+    as: "pagosAsociados"
+});
+
+Pago.belongsTo(Factura, {
+    foreignKey: "factura_id",
+    as: "facturaPago"
+});
+
+// Añadir relación de Auditoria con Usuario
+Usuario.hasMany(Auditoria, {
+    foreignKey: "usuario_id",
+    as: "cambiosRealizados"
+});
+
+Auditoria.belongsTo(Usuario, {
+    foreignKey: "usuario_id",
+    as: "usuarioResponsable"
+});
 
 // ✅ Función para sincronizar la base de datos
-const sincronizarBaseDeDatos = async () => {
+export const sincronizarBaseDeDatos = async () => {
     try {
-        await sequelize.authenticate();
-        console.log("✅ Conexión exitosa a la base de datos.");
+        // Primero las tablas base sin dependencias
+        await Usuario.sync();
+        await Veterinaria.sync();
+        await Servicio.sync();
+        await Promocion.sync();
+        await PuntosCliente.sync();
+        await Factura.sync();
 
-        await sequelize.sync({ force: false, alter: true }); // Usar alter: true para actualizar la estructura sin eliminar datos
+        // Luego las tablas con una dependencia
+        await PrecioServicio.sync();
+        await Paciente.sync();
+        await HistorialMedico.sync();
+        await HorarioAtencion.sync();
+        await Auditoria.sync();
+
+        // Finalmente las tablas con múltiples dependencias
+        await UsuarioVeterinaria.sync();
+        await Cita.sync();
+        await DetalleFactura.sync();
+        await ServicioPromocion.sync();
+        await HistorialPuntos.sync();
+        await Pago.sync();
+
         console.log("✅ Base de datos sincronizada correctamente.");
     } catch (error) {
         console.error("❌ Error al sincronizar la base de datos:", error);
@@ -82,8 +262,18 @@ export {
     Usuario,
     Veterinaria,
     Servicio,
+    PrecioServicio,
     Paciente,
+    HistorialMedico,
     Cita,
     HorarioAtencion,
-    sincronizarBaseDeDatos,
+    UsuarioVeterinaria,
+    Factura,
+    DetalleFactura,
+    Pago,
+    Promocion,
+    ServicioPromocion,
+    PuntosCliente,
+    HistorialPuntos,
+    Auditoria
 };
