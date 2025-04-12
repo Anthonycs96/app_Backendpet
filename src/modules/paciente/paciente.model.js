@@ -8,6 +8,11 @@ const Paciente = sequelize.define("Paciente", {
         primaryKey: true,
         autoIncrement: true
     },
+    fotoPerfil: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        defaultValue: null
+    },
     nombre: {
         type: DataTypes.STRING(255),
         allowNull: false
@@ -40,10 +45,30 @@ const Paciente = sequelize.define("Paciente", {
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE'
     },
+    genero: {
+        type: DataTypes.ENUM('Macho', 'Hembra'),
+        allowNull: false
+    },
+    peso: {
+        type: DataTypes.FLOAT,
+        allowNull: true
+    },
+    alergias: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
+    fecha_nacimiento: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
     estado: {
         type: DataTypes.ENUM('Activo', 'Inactivo'),
         defaultValue: 'Activo'
-    }
+    },
+    descripcion: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
 }, {
     tableName: "pacientes",
     timestamps: true

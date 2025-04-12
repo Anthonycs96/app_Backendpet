@@ -44,6 +44,7 @@ import adminPacienteRoutes from "./modules/paciente/routes/admin.routes.js";
 import asistentePacienteRoutes from "./modules/paciente/routes/asistente.routes.js";
 import recepcionistaPacienteRoutes from "./modules/paciente/routes/recepcionista.routes.js";
 import veterinarioPacienteRoutes from "./modules/paciente/routes/veterinario.routes.js";
+import clientePacienteRoutes from "./modules/paciente/routes/cliente.routes.js";
 
 const app = express();
 
@@ -94,5 +95,6 @@ app.use("/api/pacientes/admin", adminPacienteRoutes);
 app.use("/api/pacientes/asistente", asistentePacienteRoutes);
 app.use("/api/pacientes/recepcionista", recepcionistaPacienteRoutes);
 app.use("/api/pacientes/veterinario", veterinarioPacienteRoutes);
+//app.use("/api/pacientes/cliente", clientePacienteRoutes);
 
 export default app;

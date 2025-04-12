@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../../config/database.js';
 import { addAuditHooks } from '../../middleware/auditoriaHooks.js';
 
-const UsuarioVeterinaria = sequelize.define('UsuarioVeterinaria', {
+const UsuarioPaciente = sequelize.define('UsuarioPaciente', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -16,11 +16,11 @@ const UsuarioVeterinaria = sequelize.define('UsuarioVeterinaria', {
             key: 'id'
         }
     },
-    veterinariaId: {
+    pacienteId: {
         type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
         references: {
-            model: 'veterinarias',
+            model: 'pacientes',
             key: 'id'
         }
     },
@@ -37,10 +37,10 @@ const UsuarioVeterinaria = sequelize.define('UsuarioVeterinaria', {
         allowNull: true
     }
 }, {
-    tableName: 'usuario_veterinaria',
+    tableName: 'usuario_paciente',
     timestamps: true
 });
 
-addAuditHooks(UsuarioVeterinaria);
+addAuditHooks(UsuarioPaciente);
 
-export default UsuarioVeterinaria;
+export default UsuarioPaciente;

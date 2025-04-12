@@ -18,6 +18,8 @@ import Cita from "../modules/cita/cita.model.js";
 import HorarioAtencion from "../modules/horario/horario.model.js";
 // Modelo para los horarios de atención de cada veterinaria
 import UsuarioVeterinaria from "../modules/usuarioVeterinaria/usuarioVeterinaria.model.js";
+//
+import UsuarioPaciente from "../modules/usuarioPaciente/usuarioPaciente.model.js";
 // Modelo para la relación entre usuarios y veterinarias (personal médico)
 import Factura from "../modules/facturacion/factura.model.js";
 // Modelo para las facturas de servicios prestados
@@ -38,13 +40,22 @@ import Auditoria from "../modules/auditoria/auditoria.model.js";
 
 
 // ✅ Definir relaciones aquí
-// Relaciones Usuario
-Usuario.hasMany(UsuarioVeterinaria, { foreignKey: "usuario_id", as: "veterinariasAsociadas" });
-UsuarioVeterinaria.belongsTo(Usuario, { foreignKey: "usuario_id", as: "usuarioAsociado" });
+// Relaciones Usuario con UsuarioVeterinaria
+Usuario.hasMany(UsuarioVeterinaria, { foreignKey: "usuarioId", as: "veterinariasAsociadas" });
+UsuarioVeterinaria.belongsTo(Usuario, { foreignKey: "usuarioId", as: "usuarioAsociado" });
 
-// Relaciones Veterinaria
-Veterinaria.hasMany(UsuarioVeterinaria, { foreignKey: "veterinaria_id", as: "usuariosAsociados" });
-UsuarioVeterinaria.belongsTo(Veterinaria, { foreignKey: "veterinaria_id", as: "veterinariaAsociada" });
+// Relaciones Veterinaria con UsuarioVeterinaria
+Veterinaria.hasMany(UsuarioVeterinaria, { foreignKey: "veterinariaId", as: "usuariosAsociados" });
+UsuarioVeterinaria.belongsTo(Veterinaria, { foreignKey: "veterinariaId", as: "veterinariaAsociada" });
+
+// Relaciones Usuario con UsuarioPaciente
+Usuario.hasMany(UsuarioPaciente, { foreignKey: "usuarioId", as: "pacientesAsociadas" });
+UsuarioPaciente.belongsTo(Usuario, { foreignKey: "usuarioId", as: "usuarioAsociado" });
+
+// Relaciones Paciente con UsuarioPaciente
+Paciente.hasMany(UsuarioPaciente, { foreignKey: "pacienteId", as: "usuariosAsociados" });
+UsuarioPaciente.belongsTo(Paciente, { foreignKey: "pacienteId", as: "pacientesAsociadas" });
+
 
 // Relaciones Servicio y PrecioServicio
 Servicio.hasMany(PrecioServicio, {
@@ -223,6 +234,8 @@ Auditoria.belongsTo(Usuario, {
     foreignKey: "usuario_id",
     as: "usuarioResponsable"
 });
+
+
 
 // ✅ Función para sincronizar la base de datos
 export const sincronizarBaseDeDatos = async () => {

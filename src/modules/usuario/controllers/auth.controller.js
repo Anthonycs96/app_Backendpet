@@ -215,7 +215,7 @@ export const solicitarCodigo = async (req, res) => {
 
         // Validar que al menos uno de los campos esté presente
         if (!email && !telefono) {
-            return res.status(400).json({ mensaje: "Debe proporcionar un email o teléfono." });
+            return res.status(400).json({ message: "Debe proporcionar un email o teléfono." });
         }
 
         // Construir la cláusula where dinámicamente
@@ -229,7 +229,7 @@ export const solicitarCodigo = async (req, res) => {
         });
 
         if (!usuario) {
-            return res.status(404).json({ mensaje: "Usuario no encontrado" });
+            return res.status(404).json({ message: "Usuario no encontrado" });
         }
 
         // Generar código y definir expiración en 15 minutos
@@ -242,9 +242,9 @@ export const solicitarCodigo = async (req, res) => {
         await usuario.save();
 
         // ⚠️ Mostrar el código en la respuesta (en producción, podrías enviarlo por otro medio)
-        return res.json({ mensaje: "Código generado", codigo: codigoRecuperacion });
+        return res.json({ message: "Código generado", codigo: codigoRecuperacion });
     } catch (error) {
-        return res.status(500).json({ mensaje: "Error en el servidor", error: error.message });
+        return res.status(500).json({ message: "Error en el servidor", error: error.message });
     }
 };
 
@@ -255,7 +255,7 @@ export const verificarCodigo = async (req, res) => {
 
         // Validar que al menos uno de los campos esté presente
         if (!email && !telefono) {
-            return res.status(400).json({ mensaje: "Debe proporcionar un email o teléfono." });
+            return res.status(400).json({ message: "Debe proporcionar un email o teléfono." });
         }
 
         // Construir la cláusula where dinámicamente
@@ -273,12 +273,12 @@ export const verificarCodigo = async (req, res) => {
         });
 
         if (!usuario) {
-            return res.status(400).json({ mensaje: "Código inválido o expirado" });
+            return res.status(400).json({ message: "Código inválido o expirado" });
         }
 
-        return res.json({ mensaje: "Código válido, ahora puedes cambiar la contraseña" });
+        return res.json({ message: "Código válido, ahora puedes cambiar la contraseña" });
     } catch (error) {
-        return res.status(500).json({ mensaje: "Error en el servidor", error: error.message });
+        return res.status(500).json({ message: "Error en el servidor", error: error.message });
     }
 };
 
@@ -289,7 +289,7 @@ export const cambiarPassword = async (req, res) => {
 
         // Validación básica (opcional, mejora seguridad)
         if (!paisCode || !telefono || !codigo || !nuevaPassword || !respuestaSecreta) {
-            return res.status(400).json({ mensaje: "Faltan datos obligatorios." });
+            return res.status(400).json({ message: "Faltan datos obligatorios." });
         }
 
         // Buscar al usuario con coincidencia total
@@ -306,7 +306,7 @@ export const cambiarPassword = async (req, res) => {
         // Si no encuentra coincidencia exacta
         if (!usuario) {
             return res.status(400).json({
-                mensaje: "Datos incorrectos: código, teléfono o respuesta secreta inválidos o expirados."
+                message: "Datos incorrectos: código, teléfono o respuesta secreta inválidos o expirados."
             });
         }
 
@@ -320,11 +320,11 @@ export const cambiarPassword = async (req, res) => {
 
         await usuario.save();
 
-        return res.json({ mensaje: "Contraseña actualizada con éxito" });
+        return res.json({ message: "Contraseña actualizada con éxito" });
 
     } catch (error) {
         console.error("Error en cambiarPassword:", error);
-        return res.status(500).json({ mensaje: "Error en el servidor", error: error.message });
+        return res.status(500).json({ message: "Error en el servidor", error: error.message });
     }
 };
 
@@ -332,36 +332,36 @@ export const cambiarPassword = async (req, res) => {
 // 6️⃣ 🚀 Resetear Contraseña
 export const resetearPassword = async (req, res) => {
     try {
-        const { token, nuevaPassword } = req.body;
+        const { userId, nuevaPassword } = req.body;
 
-        // 1️⃣ Buscar usuario con ese token y que no haya expirado
+        console.log("🔹 Datos para resetear contraseña:", { userId, nuevaPassword });
+
+        // 1️⃣ Buscar al usuario por su ID
         const usuario = await Usuario.findOne({
             where: {
-                resetToken: token,
-                resetTokenExpires: { [Op.gt]: new Date() } // Token aún no expirado
+                id: userId, // Buscar por ID en vez de por el token
             }
         });
 
         if (!usuario) {
-            return res.status(400).json({ error: "Token inválido o expirado." });
+            return res.status(400).json({ error: "Usuario no encontrado." });
         }
 
         // 2️⃣ Hashear la nueva contraseña
         const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
 
-        // 3️⃣ Actualizar la contraseña y limpiar el token de la BD
+        // 3️⃣ Actualizar la contraseña
         usuario.password = hashedPassword;
-        usuario.resetToken = null;
-        usuario.resetTokenExpires = null;
         await usuario.save();
 
-        res.json({ message: "Contraseña actualizada con éxito." });
+        res.status(200).json({ message: "Contraseña actualizada con éxito." });
 
     } catch (error) {
         console.error("Error en resetear contraseña:", error);
         res.status(500).json({ error: "Error interno del servidor.", error: error.message });
     }
 };
+
 
 // 7️⃣ 🚀 Registrar un usuario cliente
 export const registrarUsuarioCliente = async (req, res) => {
@@ -394,7 +394,7 @@ export const registrarUsuarioCliente = async (req, res) => {
             where: { [Op.or]: [{ email }, { telefono }] },
         });
         if (existe) {
-            return res.status(400).json({ mensaje: "El usuario ya está registrado." });
+            return res.status(400).json({ message: "El usuario ya está registrado." });
         }
 
         // Hash de password + respuesta secreta
@@ -420,12 +420,12 @@ export const registrarUsuarioCliente = async (req, res) => {
         });
 
         return res.status(201).json({
-            mensaje: "Usuario registrado con éxito",
+            message: "Usuario registrado con éxito",
             usuario: { id: nuevoUsuario.id, nombre, email, telefono },
         });
     } catch (error) {
         console.error("❌ Error al registrar usuario:", error);
-        return res.status(500).json({ mensaje: "Error interno del servidor" });
+        return res.status(500).json({ message: "Error interno del servidor" });
     }
 };
 
@@ -514,5 +514,40 @@ export const registrarUsuarioClienteEnVeterinaria = async (req, res) => {
     } catch (error) {
         console.error("❌ Error al registrar usuario:", error);
         res.status(500).json({ error: "Error interno del servidor" });
+    }
+};
+
+// 9️⃣ 🚀 Verificar Contraseña Actual
+export const verificarContrasenaActual = async (req, res) => {
+    try {
+        const { usuarioId, contrasenaActual } = req.body;
+
+        // Validar que los datos no estén vacíos
+        if (!usuarioId || !contrasenaActual) {
+            return res.status(400).json({ message: "Faltan datos obligatorios." });
+        }
+
+        // Buscar al usuario en la base de datos
+        const usuario = await Usuario.findOne({
+            where: { id: usuarioId }
+        });
+
+        if (!usuario) {
+            return res.status(404).json({ message: "Usuario no encontrado." });
+        }
+
+        // Comparar la contraseña proporcionada con la almacenada en la base de datos
+        const contrasenaValida = await bcrypt.compare(contrasenaActual, usuario.password);
+
+        if (!contrasenaValida) {
+            return res.status(401).json({ message: "Contraseña actual incorrecta." });
+        }
+
+        // Si la contraseña es válida
+        return res.json({ message: "Contraseña actual válida." });
+
+    } catch (error) {
+        console.error("Error al verificar contraseña actual:", error);
+        return res.status(500).json({ message: "Error en el servidor", error: error.message });
     }
 };

@@ -3,6 +3,8 @@ import adminRoutes from "./routes/admin.routes.js";
 import veterinarioRoutes from "./routes/veterinario.routes.js";
 import asistenteRoutes from "./routes/asistente.routes.js";
 import recepcionistaRoutes from "./routes/recepcionista.routes.js";
+import clienteRoutes from "./routes/cliente.routes.js";
+
 import { verifyToken } from "../../middleware/auth.js";
 import { buscarPacientes } from "./controllers/admin.controller.js";
 
@@ -16,5 +18,8 @@ router.use("/admin", adminRoutes);
 router.use("/veterinario", veterinarioRoutes);
 router.use("/asistente", asistenteRoutes);
 router.use("/recepcionista", recepcionistaRoutes);
+router.use("/cliente", clienteRoutes);
+
+
 
 export default router;

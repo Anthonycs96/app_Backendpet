@@ -3,7 +3,12 @@ import Auditoria from '../modules/auditoria/auditoria.model.js';
 export const addAuditHooks = (model) => {
     const registrarAuditoria = async (instance, options, accion) => {
         try {
-            const usuario_id = options.userId || null;
+            const usuario_id = options.usuario_id || options.userId || null;
+            if (!usuario_id) {
+                console.warn('No se pudo obtener el ID del usuario para la auditoría.');
+                return;
+            }
+            // Verificar si la acción es válida
 
             const datosAuditoria = {
                 tabla: model.tableName,

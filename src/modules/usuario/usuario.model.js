@@ -49,7 +49,7 @@ const Usuario = sequelize.define('Usuario', {
         allowNull: true,
     },
     contraseniaActualizada: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.DATE,
         allowNull: true,
     },
     // Añadir estos dos campos nuevos:
